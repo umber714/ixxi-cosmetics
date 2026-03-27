@@ -1,0 +1,183 @@
+export interface Product {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  image: string;
+  category: string;
+  rating: number;
+  reviews: number;
+  isBestSeller?: boolean;
+  isFeatured?: boolean;
+  ingredients?: string[];
+  usage?: string;
+  benefits?: string[];
+}
+
+export const products: Product[] = [
+  {
+    id: '1',
+    name: 'Crema Hidratante Luminosa',
+    description: 'Crema hidratante de textura ligera que ilumina y nutre la piel en profundidad. Formulada con acido hialuronico y extracto de rosa mosqueta para una hidratacion duradera.',
+    price: 89.99,
+    image: 'https://images.unsplash.com/photo-1739979054787-719a848cd684?w=600&h=600&fit=crop',
+    category: 'Cuidado Facial',
+    rating: 4.8,
+    reviews: 234,
+    isBestSeller: true,
+    isFeatured: true,
+    ingredients: ['Acido Hialuronico', 'Rosa Mosqueta', 'Vitamina E', 'Aloe Vera', 'Manteca de Karite'],
+    usage: 'Aplicar manana y noche sobre el rostro limpio. Masajear suavemente con movimientos circulares ascendentes hasta su completa absorcion.',
+    benefits: ['Hidratacion profunda de 24 horas', 'Ilumina el tono de la piel', 'Reduce lineas finas'],
+  },
+  {
+    id: '2',
+    name: 'Serum Facial Regenerador',
+    description: 'Serum concentrado con retinol y vitamina C que regenera y rejuvenece la piel. Potente formula anti-edad para resultados visibles desde la primera semana.',
+    price: 124.99,
+    image: 'https://images.unsplash.com/photo-1764694187721-a5035d777fdf?w=600&h=600&fit=crop',
+    category: 'Cuidado Facial',
+    rating: 4.9,
+    reviews: 456,
+    isBestSeller: true,
+    isFeatured: true,
+    ingredients: ['Retinol', 'Vitamina C', 'Niacinamida', 'Peptidos', 'Acido Ferulico'],
+    usage: 'Aplicar 3-4 gotas por la noche sobre la piel limpia antes de la crema hidratante. Evitar la exposicion solar directa.',
+    benefits: ['Reduce arrugas visiblemente', 'Unifica el tono', 'Estimula la produccion de colageno'],
+  },
+  {
+    id: '3',
+    name: 'Labial Mate Terciopelo',
+    description: 'Labial de larga duracion con acabado mate aterciopelado. Enriquecido con aceites naturales que mantienen los labios hidratados todo el dia.',
+    price: 34.99,
+    image: 'https://images.unsplash.com/photo-1770981773328-63c2ad10013d?w=600&h=600&fit=crop',
+    category: 'Maquillaje',
+    rating: 4.7,
+    reviews: 189,
+    isFeatured: true,
+    ingredients: ['Aceite de Jojoba', 'Cera de Abeja', 'Vitamina E', 'Pigmentos Minerales'],
+    usage: 'Aplicar directamente sobre los labios. Para mayor precision, delinear primero con un perfilador.',
+    benefits: ['Duracion de hasta 12 horas', 'No reseca los labios', 'Color intenso y uniforme'],
+  },
+  {
+    id: '4',
+    name: 'Crema Contorno de Ojos',
+    description: 'Crema especifica para el contorno de ojos que reduce ojeras, bolsas y lineas de expresion. Con cafeina y peptidos de ultima generacion.',
+    price: 79.99,
+    image: 'https://images.unsplash.com/photo-1772191530787-b9546da02fbc?w=600&h=600&fit=crop',
+    category: 'Cuidado Facial',
+    rating: 4.6,
+    reviews: 312,
+    isBestSeller: true,
+    ingredients: ['Cafeina', 'Peptidos', 'Vitamina K', 'Extracto de Pepino', 'Acido Hialuronico'],
+    usage: 'Aplicar pequenas cantidades con el dedo anular alrededor del contorno de ojos, dando suaves toques sin estirar la piel.',
+    benefits: ['Reduce ojeras y bolsas', 'Minimiza lineas de expresion', 'Efecto descongestionante'],
+  },
+  {
+    id: '5',
+    name: 'Set Skincare Esencial',
+    description: 'Set completo con los esenciales para tu rutina de cuidado facial. Incluye limpiador, tonico, serum y crema hidratante en tamano completo.',
+    price: 189.99,
+    image: 'https://images.unsplash.com/photo-1613380832897-6942ddd40a28?w=600&h=600&fit=crop',
+    category: 'Sets',
+    rating: 4.9,
+    reviews: 567,
+    isBestSeller: true,
+    isFeatured: true,
+    ingredients: ['Acido Hialuronico', 'Vitamina C', 'Niacinamida', 'Extractos Botanicos', 'Aloe Vera'],
+    usage: 'Seguir el orden: 1. Limpiador, 2. Tonico, 3. Serum, 4. Crema hidratante. Usar manana y noche.',
+    benefits: ['Rutina completa simplificada', 'Ahorro vs compra individual', 'Resultados sinergicos'],
+  },
+  {
+    id: '6',
+    name: 'Limpiador Suave Facial',
+    description: 'Gel limpiador suave que elimina impurezas sin alterar el equilibrio natural de la piel. Ideal para uso diario en todo tipo de pieles.',
+    price: 44.99,
+    image: 'https://images.unsplash.com/photo-1755344339841-d34979cbfd10?w=600&h=600&fit=crop',
+    category: 'Cuidado Facial',
+    rating: 4.7,
+    reviews: 423,
+    ingredients: ['Extracto de Manzanilla', 'Glicerina', 'Aloe Vera', 'Aceite de Coco', 'Vitamina B5'],
+    usage: 'Aplicar sobre el rostro humedo, masajear suavemente y enjuagar con agua tibia. Usar manana y noche.',
+    benefits: ['Limpieza profunda sin irritar', 'Mantiene el pH natural', 'Apto para pieles sensibles'],
+  },
+  {
+    id: '7',
+    name: 'Paleta de Sombras Nude',
+    description: 'Paleta de 12 tonos nude con acabados mate, satinados y brillantes. Pigmentos de alta calidad para looks naturales o glamurosos.',
+    price: 69.99,
+    image: 'https://images.unsplash.com/photo-1583012279653-1575246476c0?w=600&h=600&fit=crop',
+    category: 'Maquillaje',
+    rating: 4.8,
+    reviews: 278,
+    ingredients: ['Pigmentos Minerales', 'Vitamina E', 'Aceite de Argan', 'Mica Natural'],
+    usage: 'Aplicar con brocha o con los dedos. Para mayor intensidad, aplicar sobre una prebase de sombras.',
+    benefits: ['12 tonos versatiles', 'Alta pigmentacion', 'Larga duracion sin transfer'],
+  },
+  {
+    id: '8',
+    name: 'Mascara de Pestanas Volumen',
+    description: 'Mascara de pestanas que aporta volumen espectacular y longitud. Formula resistente al agua con ingredientes nutritivos.',
+    price: 39.99,
+    image: 'https://images.unsplash.com/photo-1709495224787-0744d996fa58?w=600&h=600&fit=crop',
+    category: 'Maquillaje',
+    rating: 4.6,
+    reviews: 345,
+    ingredients: ['Cera de Arroz', 'Biotina', 'Aceite de Ricino', 'Vitamina E', 'Fibras Naturales'],
+    usage: 'Aplicar desde la raiz hasta las puntas con movimientos en zigzag. Aplicar varias capas para mayor volumen.',
+    benefits: ['Volumen x5', 'Resistente al agua', 'No forma grumos'],
+  },
+  {
+    id: '9',
+    name: 'Rubor en Polvo Natural',
+    description: 'Rubor en polvo con pigmentos minerales que aporta un color natural y luminoso. Textura sedosa que se difumina facilmente.',
+    price: 42.99,
+    image: 'https://images.unsplash.com/photo-1602532386405-9f3cce79a00b?w=600&h=600&fit=crop',
+    category: 'Maquillaje',
+    rating: 4.7,
+    reviews: 198,
+    ingredients: ['Pigmentos Minerales', 'Silice', 'Vitamina E', 'Extracto de Rosa'],
+    usage: 'Aplicar con brocha en las manzanas de las mejillas y difuminar hacia las sienes.',
+    benefits: ['Color natural y luminoso', 'Facil de difuminar', 'Larga duracion'],
+  },
+  {
+    id: '10',
+    name: 'Aceite Facial Nutritivo',
+    description: 'Aceite facial premium con blend de aceites botanicos que nutre, repara y protege la piel. Absorcion rapida sin dejar residuo graso.',
+    price: 94.99,
+    image: 'https://images.unsplash.com/photo-1739981248829-ac9d4a6fecfa?w=600&h=600&fit=crop',
+    category: 'Cuidado Facial',
+    rating: 4.9,
+    reviews: 289,
+    ingredients: ['Aceite de Argan', 'Aceite de Rosa Mosqueta', 'Vitamina E', 'Escualano', 'Aceite de Jojoba'],
+    usage: 'Aplicar 4-5 gotas por la noche como ultimo paso de la rutina. Puede mezclarse con la crema hidratante.',
+    benefits: ['Nutricion intensiva', 'Repara la barrera cutanea', 'Efecto anti-edad natural'],
+  },
+];
+
+export const categories = ['Todos', 'Cuidado Facial', 'Maquillaje', 'Sets'];
+
+export function getProductById(id: string): Product | undefined {
+  return products.find(p => p.id === id);
+}
+
+export function getFeaturedProducts(): Product[] {
+  return products.filter(p => p.isFeatured);
+}
+
+export function getBestSellers(): Product[] {
+  return products.filter(p => p.isBestSeller);
+}
+
+export function getProductsByCategory(category: string): Product[] {
+  if (category === 'Todos') return products;
+  return products.filter(p => p.category === category);
+}
+
+export function getRelatedProducts(productId: string, limit = 4): Product[] {
+  const product = getProductById(productId);
+  if (!product) return [];
+  return products
+    .filter(p => p.id !== productId && p.category === product.category)
+    .slice(0, limit);
+}
