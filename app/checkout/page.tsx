@@ -1,35 +1,91 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { CreditCard, Shield, Loader2 } from 'lucide-react';
+import { Shield, Loader2 } from 'lucide-react';
+import { loadStripe } from '@stripe/stripe-js';
+import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { useCart } from '@/lib/cartContext';
 
-export default function Checkout() {
-  const { items, subtotal } = useCart();
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
+
+function PaymentForm() {
+  const stripe = useStripe();
+  const elements = useElements();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function handleCheckout() {
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!stripe || !elements) return;
+
     setLoading(true);
     setError(null);
-    try {
-      const res = await fetch('/api/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          items: items.map(i => ({ id: i.product.id, quantity: i.quantity })),
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Error al procesar el pago');
-      window.location.href = data.url;
-    } catch (err: any) {
-      setError(err.message);
+
+    const { error } = await stripe.confirmPayment({
+      elements,
+      confirmParams: {
+        return_url: `${window.location.origin}/success`,
+      },
+    });
+
+    // Only runs if there's an immediate error (e.g. card declined)
+    // Successful payments redirect automatically
+    if (error) {
+      setError(error.message ?? 'Error al procesar el pago');
       setLoading(false);
     }
   }
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <PaymentElement />
+      {error && <p className="text-red-500 text-sm">{error}</p>}
+      <button
+        type="submit"
+        disabled={!stripe || loading}
+        className="w-full bg-primary text-white py-4 rounded-lg hover:bg-primary/90 transition font-medium text-lg disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+      >
+        {loading ? (
+          <>
+            <Loader2 className="w-5 h-5 animate-spin" />
+            Procesando...
+          </>
+        ) : (
+          'Pagar Ahora'
+        )}
+      </button>
+    </form>
+  );
+}
+
+export default function Checkout() {
+  const { items, subtotal } = useCart();
+  const [clientSecret, setClientSecret] = useState<string | null>(null);
+  const [fetchError, setFetchError] = useState<string | null>(null);
+
+  const shipping = subtotal >= 150 ? 0 : 9.99;
+  const tax = subtotal * 0.21;
+  const total = subtotal + shipping + tax;
+
+  useEffect(() => {
+    if (items.length === 0) return;
+
+    fetch('/api/checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        items: items.map(i => ({ id: i.product.id, quantity: i.quantity })),
+      }),
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (data.error) throw new Error(data.error);
+        setClientSecret(data.clientSecret);
+      })
+      .catch(err => setFetchError(err.message));
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (items.length === 0) {
     return (
@@ -43,16 +99,12 @@ export default function Checkout() {
     );
   }
 
-  const shipping = subtotal >= 150 ? 0 : 9.99;
-  const tax = subtotal * 0.21;
-  const total = subtotal + shipping + tax;
-
   return (
     <div className="container mx-auto px-4 py-12">
       <h1 className="text-3xl sm:text-4xl font-serif font-bold mb-8">Checkout</h1>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-        {/* Form */}
+        {/* Left: Contact + Shipping + Payment */}
         <div className="space-y-8">
           {/* Contact */}
           <div>
@@ -79,41 +131,37 @@ export default function Checkout() {
             <input placeholder="Telefono" className="w-full mt-4 px-4 py-3 border border-border rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-primary" />
           </div>
 
-          {/* Payment */}
+          {/* Stripe Payment Element */}
           <div>
             <h2 className="text-xl font-semibold mb-4">Metodo de Pago</h2>
-            <div className="border border-border rounded-lg p-6 space-y-4">
-              <div className="flex items-center gap-3">
-                <CreditCard className="w-6 h-6 text-primary" />
-                <span className="font-medium">Pago Seguro con Stripe</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <div className="border border-border rounded-lg p-6">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground mb-6">
                 <Shield className="w-4 h-4" />
                 <span>Pago 100% seguro y encriptado</span>
               </div>
+
+              {fetchError ? (
+                <p className="text-red-500 text-sm">{fetchError}</p>
+              ) : !clientSecret ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                </div>
+              ) : (
+                <Elements
+                  stripe={stripePromise}
+                  options={{
+                    clientSecret,
+                    appearance: { theme: 'stripe' },
+                  }}
+                >
+                  <PaymentForm />
+                </Elements>
+              )}
             </div>
           </div>
-
-          {error && (
-            <p className="text-red-500 text-sm text-center">{error}</p>
-          )}
-          <button
-            onClick={handleCheckout}
-            disabled={loading}
-            className="w-full bg-primary text-white py-4 rounded-lg hover:bg-primary/90 transition font-medium text-lg disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-          >
-            {loading ? (
-              <>
-                <Loader2 className="w-5 h-5 animate-spin" />
-                Redirigiendo a Stripe...
-              </>
-            ) : (
-              'Proceder al Pago'
-            )}
-          </button>
         </div>
 
-        {/* Order Summary */}
+        {/* Right: Order Summary */}
         <div className="lg:sticky lg:top-28 self-start">
           <div className="bg-secondary/50 rounded-2xl p-6">
             <h2 className="text-xl font-semibold mb-6">Resumen del Pedido</h2>

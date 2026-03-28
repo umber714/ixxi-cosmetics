@@ -10,32 +10,26 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No items in cart' }, { status: 400 });
     }
 
-    const lineItems = items.map((item: { id: string; quantity: number }) => {
+    // Calculate total server-side (never trust the client)
+    let subtotal = 0;
+    for (const item of items as { id: string; quantity: number }[]) {
       const product = products.find(p => p.id === item.id);
       if (!product) throw new Error(`Product not found: ${item.id}`);
+      subtotal += product.price * item.quantity;
+    }
 
-      return {
-        price_data: {
-          currency: 'mxn',
-          product_data: {
-            name: product.name,
-          },
-          // Stripe requires amount in cents
-          unit_amount: Math.round(product.price * 100),
-        },
-        quantity: item.quantity,
-      };
+    const shipping = subtotal >= 150 ? 0 : 9.99;
+    const tax = subtotal * 0.21;
+    const total = subtotal + shipping + tax;
+    const amount = Math.round(total * 100); // Stripe requires cents
+
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount,
+      currency: 'mxn',
+      automatic_payment_methods: { enabled: true },
     });
 
-    const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
-      line_items: lineItems,
-      mode: 'payment',
-      success_url: `${request.nextUrl.origin}/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${request.nextUrl.origin}/checkout`,
-    });
-
-    return NextResponse.json({ url: session.url });
+    return NextResponse.json({ clientSecret: paymentIntent.client_secret });
   } catch (err: any) {
     console.error('[checkout] Stripe error:', err.message, err.type, err.code);
     return NextResponse.json({ error: err.message }, { status: 500 });
