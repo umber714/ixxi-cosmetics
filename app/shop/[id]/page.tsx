@@ -2,12 +2,12 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import { ShoppingCart, Heart, Share2, Star, Check, Minus, Plus, ArrowLeft } from 'lucide-react';
 import { products, getRelatedProducts } from '@/data/products';
 import { useCart } from '@/lib/cartContext';
 import ProductCard from '@/components/ProductCard';
+import ProductGallery from '@/components/ProductGallery';
 
 interface Props {
   params: { id: string };
@@ -21,6 +21,7 @@ export default function ProductDetail({ params }: Props) {
 
   if (!product) notFound();
 
+  const allImages = product.images && product.images.length > 0 ? product.images : [product.image];
   const related = getRelatedProducts(product.id);
 
   const handleAddToCart = () => {
@@ -43,14 +44,12 @@ export default function ProductDetail({ params }: Props) {
 
         {/* Product */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16">
-          {/* Image */}
+          {/* Images */}
           <div className="relative">
             <Link href="/shop" className="lg:hidden inline-flex items-center gap-2 text-sm text-muted-foreground mb-4 hover:text-foreground">
               <ArrowLeft className="w-4 h-4" /> Volver
             </Link>
-            <div className="relative aspect-square rounded-3xl overflow-hidden">
-              <Image src={product.image} alt={product.name} fill className="object-cover" priority />
-            </div>
+            <ProductGallery images={allImages} name={product.name} />
           </div>
 
           {/* Details */}

@@ -2,3 +2,7 @@ node_modules
 .next
 .env.local
 .env*.local
+.DS_Store
+IXXI-photos/
+IXXI-updated photos/
+public/products/
