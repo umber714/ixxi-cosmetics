@@ -1,12 +1,35 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { CreditCard, Shield } from 'lucide-react';
+import { CreditCard, Shield, Loader2 } from 'lucide-react';
 import { useCart } from '@/lib/cartContext';
 
 export default function Checkout() {
   const { items, subtotal } = useCart();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleCheckout() {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          items: items.map(i => ({ id: i.product.id, quantity: i.quantity })),
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Error al procesar el pago');
+      window.location.href = data.url;
+    } catch (err: any) {
+      setError(err.message);
+      setLoading(false);
+    }
+  }
 
   if (items.length === 0) {
     return (
@@ -71,8 +94,22 @@ export default function Checkout() {
             </div>
           </div>
 
-          <button className="w-full bg-primary text-white py-4 rounded-lg hover:bg-primary/90 transition font-medium text-lg">
-            Proceder al Pago
+          {error && (
+            <p className="text-red-500 text-sm text-center">{error}</p>
+          )}
+          <button
+            onClick={handleCheckout}
+            disabled={loading}
+            className="w-full bg-primary text-white py-4 rounded-lg hover:bg-primary/90 transition font-medium text-lg disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          >
+            {loading ? (
+              <>
+                <Loader2 className="w-5 h-5 animate-spin" />
+                Redirigiendo a Stripe...
+              </>
+            ) : (
+              'Proceder al Pago'
+            )}
           </button>
         </div>
 
