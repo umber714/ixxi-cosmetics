@@ -6,3 +6,4 @@ node_modules
 IXXI-photos/
 IXXI-updated photos/
 public/products/
+.vercel

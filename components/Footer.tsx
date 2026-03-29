@@ -1,7 +1,31 @@
+'use client';
+
+import { useState } from 'react';
 import Link from 'next/link';
-import { Mail } from 'lucide-react';
+import { Mail, CheckCircle } from 'lucide-react';
 
 export default function Footer() {
+  const [email, setEmail] = useState('');
+  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+
+  async function handleSubscribe(e: React.FormEvent) {
+    e.preventDefault();
+    if (!email || !email.includes('@')) return;
+    setStatus('loading');
+    try {
+      const res = await fetch('/api/newsletter', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+      if (!res.ok) throw new Error();
+      setStatus('success');
+      setEmail('');
+    } catch {
+      setStatus('error');
+    }
+  }
+
   return (
     <footer className="mt-24">
       {/* Newsletter */}
@@ -11,16 +35,33 @@ export default function Footer() {
           <p className="text-muted-foreground mb-6">
             Recibe consejos de belleza exclusivos, ofertas especiales y novedades directamente en tu inbox.
           </p>
-          <div className="flex gap-2 max-w-md mx-auto">
-            <input
-              type="email"
-              placeholder="Tu correo electronico"
-              className="flex-1 px-4 py-3 border border-border rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-primary"
-            />
-            <button className="bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary/90 transition font-medium">
-              Suscribirse
-            </button>
-          </div>
+          {status === 'success' ? (
+            <div className="flex items-center justify-center gap-2 text-green-600">
+              <CheckCircle className="w-5 h-5" />
+              <span className="font-medium">Gracias por suscribirte!</span>
+            </div>
+          ) : (
+            <form onSubmit={handleSubscribe} className="flex gap-2 max-w-md mx-auto">
+              <input
+                type="email"
+                placeholder="Tu correo electronico"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                className="flex-1 px-4 py-3 border border-border rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-primary"
+                required
+              />
+              <button
+                type="submit"
+                disabled={status === 'loading'}
+                className="bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary/90 transition font-medium disabled:opacity-60"
+              >
+                {status === 'loading' ? '...' : 'Suscribirse'}
+              </button>
+            </form>
+          )}
+          {status === 'error' && (
+            <p className="text-red-500 text-sm mt-2">Error al suscribirse. Intenta de nuevo.</p>
+          )}
         </div>
       </div>
 

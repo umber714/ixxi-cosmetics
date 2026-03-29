@@ -10,7 +10,24 @@ import { useCart } from '@/lib/cartContext';
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
-function PaymentForm() {
+const inputClass = 'w-full px-4 py-3 border border-border rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-primary';
+const inputErrorClass = 'w-full px-4 py-3 border border-red-400 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-red-400';
+
+interface FormData {
+  email: string;
+  firstName: string;
+  lastName: string;
+  address: string;
+  city: string;
+  postalCode: string;
+  phone: string;
+}
+
+interface PaymentFormProps {
+  form: FormData;
+}
+
+function PaymentForm({ form }: PaymentFormProps) {
   const stripe = useStripe();
   const elements = useElements();
   const [loading, setLoading] = useState(false);
@@ -27,11 +44,22 @@ function PaymentForm() {
       elements,
       confirmParams: {
         return_url: `${window.location.origin}/success`,
+        payment_method_data: {
+          billing_details: {
+            name: `${form.firstName} ${form.lastName}`.trim(),
+            email: form.email,
+            phone: form.phone,
+            address: {
+              line1: form.address,
+              city: form.city,
+              postal_code: form.postalCode,
+              country: 'MX',
+            },
+          },
+        },
       },
     });
 
-    // Only runs if there's an immediate error (e.g. card declined)
-    // Successful payments redirect automatically
     if (error) {
       setError(error.message ?? 'Error al procesar el pago');
       setLoading(false);
@@ -64,10 +92,40 @@ export default function Checkout() {
   const { items, subtotal } = useCart();
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [fetchError, setFetchError] = useState<string | null>(null);
+  const [touched, setTouched] = useState<Partial<Record<keyof FormData, boolean>>>({});
+  const [form, setForm] = useState<FormData>({
+    email: '',
+    firstName: '',
+    lastName: '',
+    address: '',
+    city: '',
+    postalCode: '',
+    phone: '',
+  });
 
   const shipping = subtotal >= 150 ? 0 : 9.99;
   const tax = subtotal * 0.21;
   const total = subtotal + shipping + tax;
+
+  const required: (keyof FormData)[] = ['email', 'firstName', 'lastName', 'address', 'city', 'postalCode'];
+  const errors: Partial<Record<keyof FormData, string>> = {};
+  if (!form.email || !form.email.includes('@')) errors.email = 'Ingresa un correo valido';
+  if (!form.firstName) errors.firstName = 'Requerido';
+  if (!form.lastName) errors.lastName = 'Requerido';
+  if (!form.address) errors.address = 'Requerido';
+  if (!form.city) errors.city = 'Requerido';
+  if (!form.postalCode) errors.postalCode = 'Requerido';
+
+  const isFormValid = required.every(f => !errors[f]);
+
+  function handleChange(field: keyof FormData) {
+    return (e: React.ChangeEvent<HTMLInputElement>) =>
+      setForm(prev => ({ ...prev, [field]: e.target.value }));
+  }
+
+  function handleBlur(field: keyof FormData) {
+    return () => setTouched(prev => ({ ...prev, [field]: true }));
+  }
 
   useEffect(() => {
     if (items.length === 0) return;
@@ -77,6 +135,13 @@ export default function Checkout() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         items: items.map(i => ({ id: i.product.id, quantity: i.quantity })),
+        email: form.email,
+        firstName: form.firstName,
+        lastName: form.lastName,
+        address: form.address,
+        city: form.city,
+        postalCode: form.postalCode,
+        phone: form.phone,
       }),
     })
       .then(res => res.json())
@@ -109,26 +174,94 @@ export default function Checkout() {
           {/* Contact */}
           <div>
             <h2 className="text-xl font-semibold mb-4">Informacion de Contacto</h2>
-            <input
-              type="email"
-              placeholder="Correo electronico"
-              className="w-full px-4 py-3 border border-border rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-primary"
-            />
+            <div>
+              <input
+                type="email"
+                placeholder="Correo electronico *"
+                value={form.email}
+                onChange={handleChange('email')}
+                onBlur={handleBlur('email')}
+                className={touched.email && errors.email ? inputErrorClass : inputClass}
+              />
+              {touched.email && errors.email && (
+                <p className="text-red-500 text-xs mt-1">{errors.email}</p>
+              )}
+            </div>
           </div>
 
           {/* Shipping */}
           <div>
             <h2 className="text-xl font-semibold mb-4">Direccion de Envio</h2>
             <div className="grid grid-cols-2 gap-4">
-              <input placeholder="Nombre" className="px-4 py-3 border border-border rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-primary" />
-              <input placeholder="Apellido" className="px-4 py-3 border border-border rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-primary" />
+              <div>
+                <input
+                  placeholder="Nombre *"
+                  value={form.firstName}
+                  onChange={handleChange('firstName')}
+                  onBlur={handleBlur('firstName')}
+                  className={touched.firstName && errors.firstName ? inputErrorClass : inputClass}
+                />
+                {touched.firstName && errors.firstName && (
+                  <p className="text-red-500 text-xs mt-1">{errors.firstName}</p>
+                )}
+              </div>
+              <div>
+                <input
+                  placeholder="Apellido *"
+                  value={form.lastName}
+                  onChange={handleChange('lastName')}
+                  onBlur={handleBlur('lastName')}
+                  className={touched.lastName && errors.lastName ? inputErrorClass : inputClass}
+                />
+                {touched.lastName && errors.lastName && (
+                  <p className="text-red-500 text-xs mt-1">{errors.lastName}</p>
+                )}
+              </div>
             </div>
-            <input placeholder="Direccion" className="w-full mt-4 px-4 py-3 border border-border rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-primary" />
+            <div className="mt-4">
+              <input
+                placeholder="Direccion *"
+                value={form.address}
+                onChange={handleChange('address')}
+                onBlur={handleBlur('address')}
+                className={touched.address && errors.address ? inputErrorClass : inputClass}
+              />
+              {touched.address && errors.address && (
+                <p className="text-red-500 text-xs mt-1">{errors.address}</p>
+              )}
+            </div>
             <div className="grid grid-cols-2 gap-4 mt-4">
-              <input placeholder="Ciudad" className="px-4 py-3 border border-border rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-primary" />
-              <input placeholder="Codigo Postal" className="px-4 py-3 border border-border rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-primary" />
+              <div>
+                <input
+                  placeholder="Ciudad *"
+                  value={form.city}
+                  onChange={handleChange('city')}
+                  onBlur={handleBlur('city')}
+                  className={touched.city && errors.city ? inputErrorClass : inputClass}
+                />
+                {touched.city && errors.city && (
+                  <p className="text-red-500 text-xs mt-1">{errors.city}</p>
+                )}
+              </div>
+              <div>
+                <input
+                  placeholder="Codigo Postal *"
+                  value={form.postalCode}
+                  onChange={handleChange('postalCode')}
+                  onBlur={handleBlur('postalCode')}
+                  className={touched.postalCode && errors.postalCode ? inputErrorClass : inputClass}
+                />
+                {touched.postalCode && errors.postalCode && (
+                  <p className="text-red-500 text-xs mt-1">{errors.postalCode}</p>
+                )}
+              </div>
             </div>
-            <input placeholder="Telefono" className="w-full mt-4 px-4 py-3 border border-border rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-primary" />
+            <input
+              placeholder="Telefono"
+              value={form.phone}
+              onChange={handleChange('phone')}
+              className={`${inputClass} mt-4`}
+            />
           </div>
 
           {/* Stripe Payment Element */}
@@ -140,7 +273,11 @@ export default function Checkout() {
                 <span>Pago 100% seguro y encriptado</span>
               </div>
 
-              {fetchError ? (
+              {!isFormValid ? (
+                <p className="text-sm text-muted-foreground text-center py-4">
+                  Completa los campos requeridos para continuar con el pago
+                </p>
+              ) : fetchError ? (
                 <p className="text-red-500 text-sm">{fetchError}</p>
               ) : !clientSecret ? (
                 <div className="flex items-center justify-center py-8">
@@ -154,7 +291,7 @@ export default function Checkout() {
                     appearance: { theme: 'stripe' },
                   }}
                 >
-                  <PaymentForm />
+                  <PaymentForm form={form} />
                 </Elements>
               )}
             </div>
