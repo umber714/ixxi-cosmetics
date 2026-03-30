@@ -70,6 +70,8 @@ export async function createSkydropOrder(paymentIntent: Stripe.PaymentIntent): P
       : [],
   };
 
+  console.log('[skydrop] Sending order:', JSON.stringify(body));
+
   const res = await fetch(`${SKYDROP_BASE}/orders`, {
     method: 'POST',
     headers: {
@@ -79,11 +81,14 @@ export async function createSkydropOrder(paymentIntent: Stripe.PaymentIntent): P
     body: JSON.stringify(body),
   });
 
-  const data = await res.json();
+  const text = await res.text();
+  console.log('[skydrop] Response status:', res.status, '| body:', text);
 
   if (!res.ok) {
-    throw new Error(`Skydrop order failed: ${res.status} ${JSON.stringify(data)}`);
+    throw new Error(`Skydrop order failed: ${res.status} ${text}`);
   }
+
+  const data = text ? JSON.parse(text) : {};
 
   const skydropOrderId: string = data?.data?.id ?? data?.id ?? 'unknown';
   console.log('[skydrop] Order created:', skydropOrderId, 'for', orderRef);
