@@ -1,12 +1,31 @@
 import Stripe from 'stripe';
 
-const SKYDROP_BASE = 'https://app.skydropx.com/api/v1';
+const SKYDROP_BASE = 'https://pro.skydropx.com/api/v1';
+
+async function getAccessToken(): Promise<string> {
+  const res = await fetch(`${SKYDROP_BASE}/oauth/token`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      grant_type: 'client_credentials',
+      client_id: process.env.SKYDROP_CLIENT_ID!,
+      client_secret: process.env.SKYDROP_CLIENT_SECRET!,
+    }),
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Skydrop auth failed: ${res.status} ${text}`);
+  }
+
+  const data = await res.json();
+  return data.access_token;
+}
 
 export async function createSkydropOrder(paymentIntent: Stripe.PaymentIntent): Promise<string> {
   const { metadata, id } = paymentIntent;
 
-  // Client key used directly as Bearer token (OAuth endpoint geo-restricted to MX)
-  const token = process.env.SKYDROP_CLIENT_ID!;
+  const token = await getAccessToken();
 
   const orderRef = `IXXI-${id.slice(-8).toUpperCase()}`;
 
