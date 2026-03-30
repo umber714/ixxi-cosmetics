@@ -11,25 +11,27 @@ export async function POST(request: NextRequest) {
   try {
     event = stripe.webhooks.constructEvent(body, sig, process.env.STRIPE_WEBHOOK_SECRET!);
   } catch (err: any) {
+    console.error('[webhook] Signature verification failed:', err.message);
     return NextResponse.json({ error: `Webhook Error: ${err.message}` }, { status: 400 });
   }
 
+  console.log('[webhook] Received event:', event.type);
+
   if (event.type === 'payment_intent.succeeded') {
     const paymentIntent = event.data.object;
-    console.log('Payment succeeded:', paymentIntent.id);
+    console.log('[webhook] Payment intent succeeded:', paymentIntent.id, 'email:', paymentIntent.receipt_email);
 
     try {
       await sendOrderConfirmation(paymentIntent);
-      console.log('Order confirmation email sent for:', paymentIntent.id);
+      console.log('[webhook] Order confirmation email sent');
     } catch (err: any) {
-      // Log but don't fail the webhook — Stripe would retry
-      console.error('Failed to send order confirmation email:', err.message);
+      console.error('[webhook] Failed to send email:', err.message);
     }
   }
 
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object;
-    console.log('Checkout session completed:', session.id);
+    console.log('[webhook] Checkout session completed:', session.id);
   }
 
   return NextResponse.json({ received: true });

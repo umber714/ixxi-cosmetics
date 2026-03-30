@@ -74,8 +74,11 @@ export async function sendOrderConfirmation(paymentIntent: Stripe.PaymentIntent)
   `;
 
   const resend = getResend();
+  // Use verified domain in production, fallback to Resend sandbox until ixxi.com is verified
+  const fromAddress = process.env.RESEND_FROM_EMAIL ?? 'IXXI Cosmetics <onboarding@resend.dev>';
+
   await resend.emails.send({
-    from: 'IXXI Cosmetics <pedidos@ixxi.com>',
+    from: fromAddress,
     to: toEmail,
     subject: `Pedido confirmado IXXI-${orderRef}`,
     html,
