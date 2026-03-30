@@ -25,9 +25,10 @@ interface FormData {
 
 interface PaymentFormProps {
   form: FormData;
+  clientSecret: string;
 }
 
-function PaymentForm({ form }: PaymentFormProps) {
+function PaymentForm({ form, clientSecret }: PaymentFormProps) {
   const stripe = useStripe();
   const elements = useElements();
   const [loading, setLoading] = useState(false);
@@ -39,6 +40,23 @@ function PaymentForm({ form }: PaymentFormProps) {
 
     setLoading(true);
     setError(null);
+
+    // Update the PaymentIntent with customer data before confirming
+    // so the webhook receives receipt_email and metadata populated
+    const intentId = clientSecret.split('_secret_')[0];
+    await fetch(`/api/checkout/${intentId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: form.email,
+        firstName: form.firstName,
+        lastName: form.lastName,
+        address: form.address,
+        city: form.city,
+        postalCode: form.postalCode,
+        phone: form.phone,
+      }),
+    });
 
     const { error } = await stripe.confirmPayment({
       elements,
@@ -291,7 +309,7 @@ export default function Checkout() {
                     appearance: { theme: 'stripe' },
                   }}
                 >
-                  <PaymentForm form={form} />
+                  <PaymentForm form={form} clientSecret={clientSecret} />
                 </Elements>
               )}
             </div>
