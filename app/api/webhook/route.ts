@@ -3,13 +3,19 @@ import stripe from '@/lib/stripe';
 import { sendOrderConfirmation } from '@/lib/email';
 
 export async function POST(request: NextRequest) {
-  const sig = request.headers.get('stripe-signature')!;
-  const body = await request.text();
+  const sig = request.headers.get('stripe-signature');
+  const buf = Buffer.from(await request.arrayBuffer());
+
+  console.log('[webhook] sig present:', !!sig, '| body length:', buf.length, '| secret set:', !!process.env.STRIPE_WEBHOOK_SECRET);
+
+  if (!sig) {
+    return NextResponse.json({ error: 'Missing stripe-signature header' }, { status: 400 });
+  }
 
   let event;
 
   try {
-    event = stripe.webhooks.constructEvent(body, sig, process.env.STRIPE_WEBHOOK_SECRET!);
+    event = stripe.webhooks.constructEvent(buf, sig, process.env.STRIPE_WEBHOOK_SECRET!);
   } catch (err: any) {
     console.error('[webhook] Signature verification failed:', err.message);
     return NextResponse.json({ error: `Webhook Error: ${err.message}` }, { status: 400 });
