@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import stripe from '@/lib/stripe';
 import { sendOrderConfirmation } from '@/lib/email';
+import { createSkydropOrder } from '@/lib/skydrop';
 
 export async function POST(request: NextRequest) {
   const sig = request.headers.get('stripe-signature');
@@ -32,6 +33,16 @@ export async function POST(request: NextRequest) {
       console.log('[webhook] Order confirmation email sent');
     } catch (err: any) {
       console.error('[webhook] Failed to send email:', err.message);
+    }
+
+    try {
+      const skydropOrderId = await createSkydropOrder(paymentIntent);
+      // Store Skydropx order ID back on the PaymentIntent for reference
+      await stripe.paymentIntents.update(paymentIntent.id, {
+        metadata: { ...paymentIntent.metadata, skydropOrderId },
+      });
+    } catch (err: any) {
+      console.error('[webhook] Failed to create Skydrop order:', err.message);
     }
   }
 
