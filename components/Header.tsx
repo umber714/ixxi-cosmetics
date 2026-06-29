@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import { Search, User, ShoppingBag, Menu, X, Minus, Plus, ShoppingCart } from 'lucide-react';
-import { useCart } from '@/lib/cartContext';
+import { useCart, cartLineId } from '@/lib/cartContext';
 import Image from 'next/image';
 
 export default function Header() {
@@ -106,29 +106,34 @@ export default function Header() {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {items.map(item => (
-                    <div key={item.product.id} className="flex gap-4 items-center">
-                      <div className="relative w-24 h-24 rounded-lg overflow-hidden flex-shrink-0">
-                        <Image src={item.product.image} alt={item.product.name} fill className="object-cover" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-medium text-sm truncate">{item.product.name}</h4>
-                        <p className="text-primary font-semibold">${item.product.price.toFixed(2)}</p>
-                        <div className="flex items-center gap-2 mt-1">
-                          <button onClick={() => updateQuantity(item.product.id, item.quantity - 1)} className="w-7 h-7 border border-border rounded flex items-center justify-center hover:bg-secondary">
-                            <Minus className="w-3 h-3" />
-                          </button>
-                          <span className="text-sm w-6 text-center">{item.quantity}</span>
-                          <button onClick={() => updateQuantity(item.product.id, item.quantity + 1)} className="w-7 h-7 border border-border rounded flex items-center justify-center hover:bg-secondary">
-                            <Plus className="w-3 h-3" />
-                          </button>
+                  {items.map(item => {
+                    const lineId = cartLineId(item);
+                    const unitPrice = item.variant?.price ?? item.product.price;
+                    return (
+                      <div key={lineId} className="flex gap-4 items-center">
+                        <div className="relative w-24 h-24 rounded-lg overflow-hidden flex-shrink-0">
+                          <Image src={item.product.image} alt={item.product.name} fill className="object-cover" />
                         </div>
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-medium text-sm truncate">{item.product.name}</h4>
+                          {item.variant && <p className="text-xs text-muted-foreground">{item.variant.label}</p>}
+                          <p className="text-primary font-semibold">${unitPrice.toFixed(2)}</p>
+                          <div className="flex items-center gap-2 mt-1">
+                            <button onClick={() => updateQuantity(lineId, item.quantity - 1)} className="w-7 h-7 border border-border rounded flex items-center justify-center hover:bg-secondary">
+                              <Minus className="w-3 h-3" />
+                            </button>
+                            <span className="text-sm w-6 text-center">{item.quantity}</span>
+                            <button onClick={() => updateQuantity(lineId, item.quantity + 1)} className="w-7 h-7 border border-border rounded flex items-center justify-center hover:bg-secondary">
+                              <Plus className="w-3 h-3" />
+                            </button>
+                          </div>
+                        </div>
+                        <button onClick={() => removeItem(lineId)} className="text-muted-foreground hover:text-foreground">
+                          <X className="w-5 h-5" />
+                        </button>
                       </div>
-                      <button onClick={() => removeItem(item.product.id)} className="text-muted-foreground hover:text-foreground">
-                        <X className="w-5 h-5" />
-                      </button>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>

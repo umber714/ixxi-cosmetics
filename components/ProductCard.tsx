@@ -12,6 +12,7 @@ interface Props {
 
 export default function ProductCard({ product }: Props) {
   const { addItem } = useCart();
+  const hasVariants = !!product.variants && product.variants.length > 0;
 
   return (
     <div className="group bg-white border border-border rounded-2xl overflow-hidden hover:shadow-lg transition-shadow duration-300">
@@ -30,12 +31,21 @@ export default function ProductCard({ product }: Props) {
             Best Seller
           </span>
         )}
-        <button
-          onClick={() => addItem(product)}
-          className="absolute bottom-3 right-3 bg-primary text-white w-10 h-10 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-primary/90"
-        >
-          <ShoppingCart className="w-4 h-4" />
-        </button>
+        {hasVariants ? (
+          <Link
+            href={`/shop/${product.id}`}
+            className="absolute bottom-3 right-3 bg-primary text-white w-10 h-10 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-primary/90"
+          >
+            <ShoppingCart className="w-4 h-4" />
+          </Link>
+        ) : (
+          <button
+            onClick={() => addItem(product)}
+            className="absolute bottom-3 right-3 bg-primary text-white w-10 h-10 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-primary/90"
+          >
+            <ShoppingCart className="w-4 h-4" />
+          </button>
+        )}
       </div>
 
       {/* Info */}
@@ -53,7 +63,9 @@ export default function ProductCard({ product }: Props) {
           ))}
           <span className="text-xs text-muted-foreground ml-1">({product.reviews})</span>
         </div>
-        <p className="text-lg font-semibold">${product.price.toFixed(2)}</p>
+        <p className="text-lg font-semibold">
+          {hasVariants ? `Desde $${product.price.toFixed(2)}` : `$${product.price.toFixed(2)}`}
+        </p>
       </div>
     </div>
   );

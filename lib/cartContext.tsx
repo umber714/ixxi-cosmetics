@@ -1,20 +1,25 @@
 'use client';
 
 import { createContext, useContext, useState, ReactNode } from 'react';
-import { Product } from '@/data/products';
+import { Product, ProductVariant } from '@/data/products';
 
 export interface CartItem {
   product: Product;
+  variant?: ProductVariant;
   quantity: number;
+}
+
+export function cartLineId(item: CartItem): string {
+  return item.variant?.id ?? item.product.id;
 }
 
 interface CartContextType {
   items: CartItem[];
   isOpen: boolean;
   setIsOpen: (open: boolean) => void;
-  addItem: (product: Product) => void;
-  removeItem: (productId: string) => void;
-  updateQuantity: (productId: string, quantity: number) => void;
+  addItem: (product: Product, variant?: ProductVariant) => void;
+  removeItem: (lineId: string) => void;
+  updateQuantity: (lineId: string, quantity: number) => void;
   clearCart: () => void;
   totalItems: number;
   subtotal: number;
@@ -26,33 +31,34 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
   const [isOpen, setIsOpen] = useState(false);
 
-  const addItem = (product: Product) => {
+  const addItem = (product: Product, variant?: ProductVariant) => {
+    const lineId = variant?.id ?? product.id;
     setItems(prev => {
-      const existing = prev.find(item => item.product.id === product.id);
+      const existing = prev.find(item => cartLineId(item) === lineId);
       if (existing) {
         return prev.map(item =>
-          item.product.id === product.id
+          cartLineId(item) === lineId
             ? { ...item, quantity: item.quantity + 1 }
             : item
         );
       }
-      return [...prev, { product, quantity: 1 }];
+      return [...prev, { product, variant, quantity: 1 }];
     });
     setIsOpen(true);
   };
 
-  const removeItem = (productId: string) => {
-    setItems(prev => prev.filter(item => item.product.id !== productId));
+  const removeItem = (lineId: string) => {
+    setItems(prev => prev.filter(item => cartLineId(item) !== lineId));
   };
 
-  const updateQuantity = (productId: string, quantity: number) => {
+  const updateQuantity = (lineId: string, quantity: number) => {
     if (quantity <= 0) {
-      removeItem(productId);
+      removeItem(lineId);
       return;
     }
     setItems(prev =>
       prev.map(item =>
-        item.product.id === productId ? { ...item, quantity } : item
+        cartLineId(item) === lineId ? { ...item, quantity } : item
       )
     );
   };
@@ -60,7 +66,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const clearCart = () => setItems([]);
 
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
-  const subtotal = items.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
+  const subtotal = items.reduce(
+    (sum, item) => sum + (item.variant?.price ?? item.product.price) * item.quantity,
+    0
+  );
 
   return (
     <CartContext.Provider value={{ items, isOpen, setIsOpen, addItem, removeItem, updateQuantity, clearCart, totalItems, subtotal }}>

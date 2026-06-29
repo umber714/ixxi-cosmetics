@@ -13,11 +13,19 @@ export async function POST(request: NextRequest) {
     // Calculate total server-side (never trust the client)
     let subtotal = 0;
     const itemDescriptions: string[] = [];
-    for (const item of items as { id: string; quantity: number }[]) {
+    for (const item of items as { id: string; variantId?: string; quantity: number }[]) {
       const product = products.find(p => p.id === item.id);
       if (!product) throw new Error(`Product not found: ${item.id}`);
-      subtotal += product.price * item.quantity;
-      itemDescriptions.push(`${product.name} x${item.quantity}`);
+      let unitPrice = product.price;
+      let label = product.name;
+      if (item.variantId) {
+        const variant = product.variants?.find(v => v.id === item.variantId);
+        if (!variant) throw new Error(`Variant not found: ${item.variantId}`);
+        unitPrice = variant.price;
+        label = `${product.name} (${variant.label})`;
+      }
+      subtotal += unitPrice * item.quantity;
+      itemDescriptions.push(`${label} x${item.quantity}`);
     }
 
     const shipping = subtotal >= 150 ? 0 : 9.99;

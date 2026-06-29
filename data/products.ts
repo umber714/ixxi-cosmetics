@@ -1,8 +1,15 @@
+export interface ProductVariant {
+  id: string;
+  label: string;
+  price: number;
+}
+
 export interface Product {
   id: string;
   name: string;
   description: string;
   price: number;
+  variants?: ProductVariant[];
   image: string;
   category: string;
   rating: number;
@@ -120,7 +127,11 @@ export const products: Product[] = [
     id: '13',
     name: 'Tratamiento Multivitamínico con Proteína de Seda IXXI',
     description: 'Nutre, repara y protege tu cabello proporcionando brillo, suavidad y manejabilidad en 1 solo paso. Desenreda al instante con delicioso aroma único. Uso diario, ideal para todo tipo de cabellos. ¡También realza y define rizos!',
-    price: 84.99,
+    price: 419,
+    variants: [
+      { id: '13-150', label: '150 ML', price: 419 },
+      { id: '13-250', label: '250 ML', price: 649 },
+    ],
     image: '/images/proteina-de-seda.webp',
     images: ['/images/proteina-de-seda.webp', '/images/proteina-de-seda-v2.webp'],
     category: 'Cuidado Capilar',
@@ -135,7 +146,7 @@ export const products: Product[] = [
     id: '14',
     name: 'Mascarilla Hidratación Profunda IXXI',
     description: 'Potente mascarilla hidratante. Ideal para todo tipo de cabellos, especialmente procesados, secos o levemente opacos. Repara la estructura nutriéndolo y devolviéndole el brillo y la sedosidad perdidos.',
-    price: 64.99,
+    price: 289,
     image: '/images/mascarilla-hidratante.webp',
     images: ['/images/mascarilla-hidratante.webp', '/images/mascarilla-hidratante-v2.webp'],
     category: 'Cuidado Capilar',
@@ -150,7 +161,7 @@ export const products: Product[] = [
     id: '15',
     name: 'Mascarilla Reestructurante con Pigmento IXXI',
     description: 'Mascarilla reestructurante con pigmentos para depositar y tonificar colores vibrantes semipermanentes al instante, rica en Pro-V. Nutre y repara proporcionando suavidad y preservando su vitalidad. Fácil, rápido y sin salir de casa.',
-    price: 69.99,
+    price: 349,
     image: '/images/mascarilla-restructurante-con-pigmento.webp',
     images: ['/images/mascarilla-restructurante-con-pigmento.webp', '/images/mascarilla-restructurante-v2.webp'],
     category: 'Cuidado Capilar',
@@ -164,7 +175,7 @@ export const products: Product[] = [
     id: '16',
     name: 'Sérum de Argán Sellador de Puntas y Protector Térmico IXXI',
     description: 'Poderoso protector térmico y sellador de puntas abiertas. Crea una capa defensora que previene la rotura, sella y preserva la hidratación esencial. Exquisito aroma y rápida absorción.',
-    price: 49.99,
+    price: 349,
     image: '/images/protector-termico.webp',
     images: ['/images/protector-termico.webp', '/images/protector-termico-v2.webp'],
     category: 'Cuidado Capilar',

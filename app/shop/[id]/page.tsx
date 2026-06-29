@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ShoppingCart, Heart, Share2, Star, Check, Minus, Plus, ArrowLeft } from 'lucide-react';
-import { products, getRelatedProducts } from '@/data/products';
+import { products, getRelatedProducts, ProductVariant } from '@/data/products';
 import { useCart } from '@/lib/cartContext';
 import ProductCard from '@/components/ProductCard';
 import ProductGallery from '@/components/ProductGallery';
@@ -17,6 +17,7 @@ export default function ProductDetail({ params }: Props) {
   const product = products.find(p => p.id === params.id);
   const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState<'ingredients' | 'usage' | 'reviews'>('ingredients');
+  const [selectedVariant, setSelectedVariant] = useState<ProductVariant | undefined>(product?.variants?.[0]);
   const { addItem } = useCart();
 
   if (!product) notFound();
@@ -26,7 +27,7 @@ export default function ProductDetail({ params }: Props) {
 
   const handleAddToCart = () => {
     for (let i = 0; i < quantity; i++) {
-      addItem(product);
+      addItem(product, selectedVariant);
     }
   };
 
@@ -66,7 +67,29 @@ export default function ProductDetail({ params }: Props) {
               <span className="text-sm text-muted-foreground">({product.reviews} resenas)</span>
             </div>
 
-            <p className="text-3xl font-bold mb-6">${product.price.toFixed(2)}</p>
+            <p className="text-3xl font-bold mb-6">${(selectedVariant?.price ?? product.price).toFixed(2)}</p>
+
+            {product.variants && product.variants.length > 0 && (
+              <div className="mb-6">
+                <p className="text-sm font-medium mb-2">Tamaño</p>
+                <div className="flex gap-3">
+                  {product.variants.map(v => (
+                    <button
+                      key={v.id}
+                      onClick={() => setSelectedVariant(v)}
+                      className={`px-4 py-2 rounded-lg border text-sm font-medium transition ${
+                        selectedVariant?.id === v.id
+                          ? 'border-primary bg-primary text-white'
+                          : 'border-border hover:border-primary'
+                      }`}
+                    >
+                      {v.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <p className="text-muted-foreground mb-8">{product.description}</p>
 
             {/* Quantity */}

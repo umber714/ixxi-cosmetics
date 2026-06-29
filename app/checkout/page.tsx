@@ -152,7 +152,7 @@ export default function Checkout() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        items: items.map(i => ({ id: i.product.id, quantity: i.quantity })),
+        items: items.map(i => ({ id: i.product.id, variantId: i.variant?.id, quantity: i.quantity })),
         email: form.email,
         firstName: form.firstName,
         lastName: form.lastName,
@@ -321,18 +321,22 @@ export default function Checkout() {
           <div className="bg-secondary/50 rounded-2xl p-6">
             <h2 className="text-xl font-semibold mb-6">Resumen del Pedido</h2>
             <div className="space-y-4 mb-6">
-              {items.map(item => (
-                <div key={item.product.id} className="flex gap-4 items-center">
-                  <div className="relative w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
-                    <Image src={item.product.image} alt={item.product.name} fill className="object-cover" />
+              {items.map(item => {
+                const unitPrice = item.variant?.price ?? item.product.price;
+                return (
+                  <div key={item.variant?.id ?? item.product.id} className="flex gap-4 items-center">
+                    <div className="relative w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
+                      <Image src={item.product.image} alt={item.product.name} fill className="object-cover" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{item.product.name}</p>
+                      {item.variant && <p className="text-xs text-muted-foreground">{item.variant.label}</p>}
+                      <p className="text-xs text-muted-foreground">Cant: {item.quantity}</p>
+                    </div>
+                    <p className="font-medium">${(unitPrice * item.quantity).toFixed(2)}</p>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">{item.product.name}</p>
-                    <p className="text-xs text-muted-foreground">Cant: {item.quantity}</p>
-                  </div>
-                  <p className="font-medium">${(item.product.price * item.quantity).toFixed(2)}</p>
-                </div>
-              ))}
+                );
+              })}
             </div>
             <div className="space-y-2 border-t border-border pt-4 text-sm">
               <div className="flex justify-between">
